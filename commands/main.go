@@ -10,11 +10,12 @@ var (
 	ErrInvalidCommand         = errors.New("no such command found")
 	ErrWrongNumberOfArguments = errors.New("wrong number of arguments")
 )
+var kv = make(map[string]string)
 
 func ExecuteCommand(arr interface{}) (interface{}, error) {
 	s := reflect.ValueOf(arr)
-
-	switch fmt.Sprintf("%s", s.Index(0)) {
+	cmd := fmt.Sprintf("%s", s.Index(0))
+	switch cmd {
 	case "PING":
 		if s.Len() > 2 {
 			return nil, ErrWrongNumberOfArguments
@@ -24,8 +25,21 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			}
 			return "PONG", nil
 		}
+
 	case "GET":
+		if s.Len() != 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		if v, ok := kv[fmt.Sprintf("%s", s.Index(1))]; ok {
+			return []byte(v), nil
+		}
+		return nil, nil
 	case "SET":
+		if s.Len() != 3 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		kv[fmt.Sprintf("%s", s.Index(1))] = fmt.Sprintf("%s", s.Index(2))
+		return "OK", nil
 	case "GETSET":
 	case "DEL":
 	case "GETDEL":
