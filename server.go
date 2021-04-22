@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/tinfoil-knight/tiny-redis/commands"
 	"github.com/tinfoil-knight/tiny-redis/resp"
 )
 
@@ -31,8 +32,14 @@ func handleConn(c net.Conn) {
 	bytes := scanner.Bytes()
 	fmt.Printf("%+q\n", bytes)
 	val, _ := resp.Decode(bytes)
-	fmt.Printf("Parsed: %v\n", val)
-	c.Write([]byte("-ERR unknown command\r\n"))
+	fmt.Printf("Parsed: %s\n", val)
+	v, err := commands.ExecuteCommand(val)
+	fmt.Printf("%+q\n", resp.Encode(v))
+	if err != nil {
+		c.Write([]byte(resp.Encode(err)))
+	} else {
+		c.Write([]byte(resp.Encode(v)))
+	}
 }
 
 func main() {
@@ -47,6 +54,6 @@ func main() {
 			log.Print(err)
 			continue
 		}
-		handleConn(conn)
+		go handleConn(conn)
 	}
 }

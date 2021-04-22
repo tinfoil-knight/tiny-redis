@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrInvalidDataType = errors.New("resp.Decode: invalid datatype")
+	ErrInvalidDataType = errors.New("invalid datatype")
 )
 
 const (

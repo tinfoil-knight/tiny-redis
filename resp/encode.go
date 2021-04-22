@@ -12,7 +12,8 @@ func Encode(input interface{}) string {
 	case string:
 		return fmt.Sprintf("+%s\r\n", input)
 	case []byte:
-		return fmt.Sprintf("$%v\r\n%s\r\n", len(reflect.ValueOf(input).Bytes()), input)
+		len := len(reflect.ValueOf(input).Bytes())
+		return fmt.Sprintf("$%v\r\n%s\r\n", len, input)
 	case error:
 		return fmt.Sprintf("-%s\r\n", input)
 	case []interface{}:
@@ -25,6 +26,6 @@ func Encode(input interface{}) string {
 	case nil:
 		return "$-1\r\n"
 	default:
-		return "invalid data type"
+		panic(ErrInvalidDataType)
 	}
 }
