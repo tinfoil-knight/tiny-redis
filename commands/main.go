@@ -40,10 +40,16 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		kv[fmt.Sprintf("%s", s.Index(1))] = fmt.Sprintf("%s", s.Index(2))
 		return "OK", nil
-	case "GETSET":
 	case "DEL":
 	case "GETDEL":
 	case "EXISTS":
+		n := 0
+		for count := 1; count < s.Len(); count++ {
+			if _, ok := kv[fmt.Sprintf("%s", s.Index(count))]; ok {
+				n++
+			}
+		}
+		return n, nil
 	case "INCR":
 	case "INCRBY":
 	case "DECR":
