@@ -1,0 +1,3 @@
+package resp
+
+// func Encode()
