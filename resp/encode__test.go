@@ -63,19 +63,19 @@ func Test__ArrayEn(t *testing.T) {
 		{sliceOfIntegers, "*3\r\n:1\r\n:2\r\n:3\r\n"},
 		{sliceWithMixedTypes, "*5\r\n:1\r\n:2\r\n:3\r\n:4\r\n$6\r\nfoobar\r\n"},
 		{nestedSlice, "*2\r\n*3\r\n:1\r\n:2\r\n:3\r\n*2\r\n+foo\r\n+bar\r\n"},
-		{sliceWithNull, "*3\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n"},
+		{sliceWithNull, "*3\r\n$3\r\nfoo\r\n_\r\n$3\r\nbar\r\n"},
 	}
 	for _, tt := range tests {
 		got := Encode(tt.input)
 		if got != tt.expected {
-			t.Errorf("Encode(%v): got %q want %q", tt.input, got, tt.expected)
+			t.Errorf("Encode(%q): got %q want %q", tt.input, got, tt.expected)
 		}
 	}
 }
 
 func Test_NilEn(t *testing.T) {
 	got := Encode(nil)
-	want := "$-1\r\n"
+	want := "_\r\n"
 	if got != want {
 		t.Errorf("got %q want %q", got, want)
 	}

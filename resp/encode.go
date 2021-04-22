@@ -24,7 +24,7 @@ func Encode(input interface{}) string {
 		}
 		return v
 	case nil:
-		return "$-1\r\n"
+		return "_\r\n"
 	default:
 		panic(ErrInvalidDataType)
 	}
