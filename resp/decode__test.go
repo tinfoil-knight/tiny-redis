@@ -36,14 +36,14 @@ func Test__BulkString(t *testing.T) {
 		input    string
 		expected interface{}
 	}{
-		{"$6\r\nfoobar\r\n", "foobar"},
-		{"$0\r\n\r\n", ""},
+		{"$6\r\nfoobar\r\n", []byte("foobar")},
+		{"$0\r\n\r\n", []byte("")},
 		{"$-1\r\n", nil},
 	}
 
 	for _, tt := range tests {
 		got, _ := Decode([]byte(tt.input))
-		if got != tt.expected {
+		if !reflect.DeepEqual(got, tt.expected) {
 			t.Errorf("Decode(%q): got %q want %q", tt.input, got, tt.expected)
 		}
 	}
@@ -53,16 +53,16 @@ func Test__Array(t *testing.T) {
 	emptySlice := make([]interface{}, 0)
 	sliceOfStrings := []interface{}{"foo", "bar"}
 	sliceOfIntegers := []interface{}{1, 2, 3}
-	sliceWithMixedTypes := []interface{}{1, 2, 3, 4, "foobar"}
+	sliceWithMixedTypes := []interface{}{1, 2, 3, 4, []byte("foobar")}
 	nestedSlice := []interface{}{sliceOfIntegers, sliceOfStrings}
-	sliceWithNull := []interface{}{"foo", nil, "bar"}
+	sliceWithNull := []interface{}{[]byte("foo"), nil, []byte("bar")}
 
 	tests := []struct {
 		input    string
 		expected interface{}
 	}{
 		{"*0\r\n", emptySlice},
-		{"*2\r\n$3\r\nfoo\r\n$3\r\nbar\r\n", sliceOfStrings},
+		{"*2\r\n+foo\r\n+bar\r\n", sliceOfStrings},
 		{"*3\r\n:1\r\n:2\r\n:3\r\n", sliceOfIntegers},
 		{"*5\r\n:1\r\n:2\r\n:3\r\n:4\r\n$6\r\nfoobar\r\n", sliceWithMixedTypes},
 		{"*-1\r\n", nil},

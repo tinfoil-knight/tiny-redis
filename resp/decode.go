@@ -72,12 +72,12 @@ func handleBulkString(in []byte) (interface{}, int) {
 	size, _ := strconv.Atoi(length)
 	switch size {
 	case 0:
-		return "", read
+		return []byte(""), read
 	case -1:
 		return nil, read
 	default:
 		val, r := readUntilCRLF(in[read:])
-		return val, read + r
+		return []byte(val), read + r
 	}
 }
 
