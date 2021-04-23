@@ -21,12 +21,18 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 	case "PING":
 		if s.Len() > 2 {
 			return nil, ErrWrongNumOfArgs
-		} else {
-			if s.Len() == 2 {
-				return []byte(fmt.Sprintf("%s", s.Index(1))), nil
-			}
-			return "PONG", nil
 		}
+		if s.Len() == 2 {
+			arg := fmt.Sprintf("%s", s.Index(1))
+			return []byte(arg), nil
+		}
+		return "PONG", nil
+	case "ECHO":
+		if s.Len() != 2 {
+			return nil, ErrWrongNumOfArgs
+		}
+		arg := fmt.Sprintf("%s", s.Index(1))
+		return []byte(arg), nil
 	case "GET":
 		if s.Len() != 2 {
 			return nil, ErrWrongNumOfArgs
@@ -93,7 +99,6 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		kv[key] = "1"
 		return 1, nil
-	case "INCRBY":
 	case "DECR":
 		if s.Len() != 2 {
 			return nil, ErrWrongNumOfArgs
@@ -110,10 +115,20 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		kv[key] = "-1"
 		return -1, nil
+	case "INCRBY":
 	case "DECRBY":
+	case "APPEND":
+	case "GETBIT":
+	case "SETBIT":
 	case "QUIT":
 	case "SAVE":
 	case "STRLEN":
+	case "GETRANGE":
+	case "SETRANGE":
+	case "SETNX":
+	case "MGET":
+	case "MSET":
+	case "MSETNX":
 	case "RENAME":
 
 	default:

@@ -42,13 +42,15 @@ go test ./... -v
 
 ## Acknowledgements
 
-- [Exotel](https://exotel.com/about-us/exotel-tech-challenge/) for their tech-challenge which gave me the idea to build this.
+- [Exotel](https://exotel.com/) for their [tech-challenge](https://exotel.com/about-us/exotel-tech-challenge/) which gave me the idea to build this.
 - [Redis protocol specification](https://redis.io/topics/protocol) and [RESP3 spec](https://github.com/antirez/RESP3/blob/master/spec.md) for documenting the Redis protocol.
 
 ## Appendix
 **List of Allowed Commands**
 
-`PING`, `GET`, `SET`, `DEL`, `GETDEL`, `EXISTS`, `INCR`, `DECR`
+- Connection: `PING`, `ECHO`
+- Keys: `DEL`, `EXISTS`
+- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`
 
 > Note: Some commands may not support all options available in Redis 6.
 
