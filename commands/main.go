@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 var (
 	ErrInvalidCommand         = errors.New("ERR unknown command")
 	ErrWrongNumberOfArguments = errors.New("ERR wrong number of arguments")
+	ErrValNotIntOrOutOfRange  = errors.New("ERR value is not an integer or out of range")
 )
 var kv = make(map[string]string)
 
@@ -29,7 +31,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		if s.Len() != 2 {
 			return nil, ErrWrongNumberOfArguments
 		}
-		if v, ok := kv[fmt.Sprintf("%s", s.Index(1))]; ok {
+		key := fmt.Sprintf("%s", s.Index(1))
+		if v, ok := kv[key]; ok {
 			return []byte(v), nil
 		}
 		return nil, nil
@@ -37,7 +40,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		if s.Len() != 3 {
 			return nil, ErrWrongNumberOfArguments
 		}
-		kv[fmt.Sprintf("%s", s.Index(1))] = fmt.Sprintf("%s", s.Index(2))
+		key := fmt.Sprintf("%s", s.Index(1))
+		kv[key] = fmt.Sprintf("%s", s.Index(2))
 		return "OK", nil
 	case "DEL":
 		if s.Len() < 2 {
@@ -63,6 +67,9 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		return nil, nil
 	case "EXISTS":
+		if s.Len() < 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
 		n := 0
 		for count := 1; count < s.Len(); count++ {
 			if _, ok := kv[fmt.Sprintf("%s", s.Index(count))]; ok {
@@ -71,8 +78,38 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		return n, nil
 	case "INCR":
+		if s.Len() < 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		if str, ok := kv[key]; ok {
+			v, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, ErrValNotIntOrOutOfRange
+			}
+			v++
+			kv[key] = strconv.Itoa(v)
+			return v, nil
+		}
+		kv[key] = "1"
+		return 1, nil
 	case "INCRBY":
 	case "DECR":
+		if s.Len() < 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		if str, ok := kv[key]; ok {
+			v, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, ErrValNotIntOrOutOfRange
+			}
+			v--
+			kv[key] = strconv.Itoa(v)
+			return v, nil
+		}
+		kv[key] = "-1"
+		return -1, nil
 	case "DECRBY":
 	case "QUIT":
 	case "SAVE":

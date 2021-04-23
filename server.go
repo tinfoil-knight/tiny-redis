@@ -30,11 +30,11 @@ func handleConn(c net.Conn) {
 		panic(err)
 	}
 	bytes := scanner.Bytes()
-	fmt.Printf("%+q\n", bytes)
+	fmt.Printf("Recv: %+q\n", bytes)
 	val, _ := resp.Decode(bytes)
 	fmt.Printf("Parsed: %s\n", val)
 	v, err := commands.ExecuteCommand(val)
-	fmt.Printf("%+q\n", resp.Encode(v))
+	fmt.Printf("Send: %+q\n", resp.Encode(v))
 	if err != nil {
 		c.Write([]byte(resp.Encode(err)))
 	} else {

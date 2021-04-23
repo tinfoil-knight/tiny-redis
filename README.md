@@ -48,7 +48,7 @@ go test ./... -v
 ## Appendix
 **List of Allowed Commands**
 
-`PING`, `GET`, `SET`, `DEL`, `GETDEL`, `EXISTS`
+`PING`, `GET`, `SET`, `DEL`, `GETDEL`, `EXISTS`, `INCR`, `DECR`
 
 > Note: Some commands may not support all options available in Redis 6.
 
