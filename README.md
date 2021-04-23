@@ -13,7 +13,7 @@ Note:
 ### Running locally
 
 ```bash
-go run server.go
+make run
 ```
 > Note: The examples assume that the TCP server is running on localhost at port 8001
 
@@ -33,7 +33,7 @@ OK
 ### Running tests
 
 ```bash
-go test ./... -v
+make test
 ```
 
 ## Author
