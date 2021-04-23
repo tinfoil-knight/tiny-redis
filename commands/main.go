@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	ErrInvalidCommand         = errors.New("no such command found")
-	ErrWrongNumberOfArguments = errors.New("wrong number of arguments")
+	ErrInvalidCommand         = errors.New("ERR unknown command")
+	ErrWrongNumberOfArguments = errors.New("ERR wrong number of arguments")
 )
 var kv = make(map[string]string)
 
@@ -25,7 +25,6 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			}
 			return "PONG", nil
 		}
-
 	case "GET":
 		if s.Len() != 2 {
 			return nil, ErrWrongNumberOfArguments
@@ -41,7 +40,28 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		kv[fmt.Sprintf("%s", s.Index(1))] = fmt.Sprintf("%s", s.Index(2))
 		return "OK", nil
 	case "DEL":
+		if s.Len() < 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		n := 0
+		for count := 1; count < s.Len(); count++ {
+			key := fmt.Sprintf("%s", s.Index(count))
+			if _, ok := kv[key]; ok {
+				delete(kv, key)
+				n++
+			}
+		}
+		return n, nil
 	case "GETDEL":
+		if s.Len() != 2 {
+			return nil, ErrWrongNumberOfArguments
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		if v, ok := kv[key]; ok {
+			delete(kv, key)
+			return []byte(v), nil
+		}
+		return nil, nil
 	case "EXISTS":
 		n := 0
 		for count := 1; count < s.Len(); count++ {
