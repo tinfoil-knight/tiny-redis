@@ -116,7 +116,45 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		kv[key] = "-1"
 		return -1, nil
 	case "INCRBY":
+		if s.Len() != 3 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		incr, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		if err != nil {
+			return nil, ErrValNotIntOrOutOfRange
+		}
+		if str, ok := kv[key]; ok {
+			v, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, ErrValNotIntOrOutOfRange
+			}
+			v += incr
+			kv[key] = strconv.Itoa(v)
+			return v, nil
+		}
+		kv[key] = strconv.Itoa(incr)
+		return incr, nil
 	case "DECRBY":
+		if s.Len() != 3 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		decr, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		if err != nil {
+			return nil, ErrValNotIntOrOutOfRange
+		}
+		if str, ok := kv[key]; ok {
+			v, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, ErrValNotIntOrOutOfRange
+			}
+			v -= decr
+			kv[key] = strconv.Itoa(v)
+			return v, nil
+		}
+		kv[key] = strconv.Itoa(-decr)
+		return -decr, nil
 	case "APPEND":
 	case "GETBIT":
 	case "SETBIT":

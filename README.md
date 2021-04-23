@@ -50,7 +50,7 @@ go test ./... -v
 
 - Connection: `PING`, `ECHO`
 - Keys: `DEL`, `EXISTS`
-- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`
+- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`
 
 > Note: Some commands may not support all options available in Redis 6.
 
