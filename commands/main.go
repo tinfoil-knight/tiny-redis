@@ -78,7 +78,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		n := 0
 		for count := 1; count < s.Len(); count++ {
-			if _, ok := kv[fmt.Sprintf("%s", s.Index(count))]; ok {
+			key := fmt.Sprintf("%s", s.Index(count))
+			if _, ok := kv[key]; ok {
 				n++
 			}
 		}
@@ -156,9 +157,20 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		kv[key] = strconv.Itoa(-decr)
 		return -decr, nil
 	case "APPEND":
+		if s.Len() != 3 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		value := fmt.Sprintf("%s", s.Index(2))
+		if v, ok := kv[key]; ok {
+			v += value
+			kv[key] = v
+			return len(v), nil
+		}
+		kv[key] = value
+		return len(value), nil
 	case "GETBIT":
 	case "SETBIT":
-	case "QUIT":
 	case "SAVE":
 	case "STRLEN":
 	case "GETRANGE":
