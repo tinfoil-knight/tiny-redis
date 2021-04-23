@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	ErrInvalidCommand         = errors.New("ERR unknown command")
-	ErrWrongNumberOfArguments = errors.New("ERR wrong number of arguments")
-	ErrValNotIntOrOutOfRange  = errors.New("ERR value is not an integer or out of range")
+	ErrInvalidCommand        = errors.New("ERR unknown command")
+	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
+	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
 )
 var kv = make(map[string]string)
 
@@ -20,7 +20,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 	switch cmd {
 	case "PING":
 		if s.Len() > 2 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		} else {
 			if s.Len() == 2 {
 				return []byte(fmt.Sprintf("%s", s.Index(1))), nil
@@ -29,7 +29,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 	case "GET":
 		if s.Len() != 2 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		if v, ok := kv[key]; ok {
@@ -38,14 +38,14 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		return nil, nil
 	case "SET":
 		if s.Len() != 3 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		kv[key] = fmt.Sprintf("%s", s.Index(2))
 		return "OK", nil
 	case "DEL":
 		if s.Len() < 2 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		}
 		n := 0
 		for count := 1; count < s.Len(); count++ {
@@ -58,7 +58,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		return n, nil
 	case "GETDEL":
 		if s.Len() != 2 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		if v, ok := kv[key]; ok {
@@ -68,7 +68,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		return nil, nil
 	case "EXISTS":
 		if s.Len() < 2 {
-			return nil, ErrWrongNumberOfArguments
+			return nil, ErrWrongNumOfArgs
 		}
 		n := 0
 		for count := 1; count < s.Len(); count++ {
@@ -78,8 +78,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		return n, nil
 	case "INCR":
-		if s.Len() < 2 {
-			return nil, ErrWrongNumberOfArguments
+		if s.Len() != 2 {
+			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		if str, ok := kv[key]; ok {
@@ -95,8 +95,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		return 1, nil
 	case "INCRBY":
 	case "DECR":
-		if s.Len() < 2 {
-			return nil, ErrWrongNumberOfArguments
+		if s.Len() != 2 {
+			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		if str, ok := kv[key]; ok {
