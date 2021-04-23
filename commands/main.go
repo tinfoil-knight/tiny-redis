@@ -1,8 +1,12 @@
 package commands
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"reflect"
 	"strconv"
 )
@@ -12,6 +16,7 @@ var (
 	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
 	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
 )
+
 var kv = make(map[string]string)
 
 func ExecuteCommand(arr interface{}) (interface{}, error) {
@@ -172,6 +177,19 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 	case "GETBIT":
 	case "SETBIT":
 	case "SAVE":
+		f, err := os.OpenFile("dump.tdb", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		b := new(bytes.Buffer)
+		if err = gob.NewEncoder(b).Encode(kv); err != nil {
+			panic(err)
+		}
+		if _, err = io.Copy(f, b); err != nil {
+			panic(err)
+		}
+		return "OK", nil
 	case "STRLEN":
 	case "GETRANGE":
 	case "SETRANGE":
@@ -186,3 +204,15 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 	}
 	return nil, errors.New("commands.ExecuteCommand: unknown error")
 }
+
+// func load() {
+// 	f, err := os.Open("dump.tdb")
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer f.Close()
+// 	if err = gob.NewDecoder(f).Decode(&kv); err != nil {
+// 		panic(err)
+// 	}
+// 	fmt.Printf("%#v\n", kv)
+// }
