@@ -25,8 +25,7 @@ func handleConn(c net.Conn) {
 	scanner := bufio.NewScanner(c)
 	scanner.Split(untilEOF)
 	scanner.Scan()
-	err := scanner.Err()
-	if err != nil {
+	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
 	bytes := scanner.Bytes()
