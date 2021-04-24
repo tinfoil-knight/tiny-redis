@@ -198,8 +198,11 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		key := fmt.Sprintf("%s", s.Index(1))
 		if v, ok := kv[key]; ok {
 			l := len(v)
-			start, _ := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
-			end, _ := strconv.Atoi(fmt.Sprintf("%s", s.Index(3)))
+			start, err1 := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+			end, err2 := strconv.Atoi(fmt.Sprintf("%s", s.Index(3)))
+			if err1 != nil || err2 != nil {
+				return nil, ErrValNotIntOrOutOfRange
+			}
 			if start >= l {
 				return []byte(""), nil
 			}
