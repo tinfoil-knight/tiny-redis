@@ -192,13 +192,37 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		return "OK", nil
 	case "STRLEN":
 	case "GETRANGE":
+		if s.Len() != 4 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		if v, ok := kv[key]; ok {
+			l := len(v)
+			start, _ := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+			end, _ := strconv.Atoi(fmt.Sprintf("%s", s.Index(3)))
+			if start >= l {
+				return []byte(""), nil
+			}
+			if end >= l {
+				end = l - 1
+			}
+			start = (start%l + l) % l
+			end = (end%l + l) % l
+			if start > end {
+				return []byte(""), nil
+			}
+			// GETRANGE is inclusive for both offsets
+			end++
+			return []byte(v[start:end]), nil
+		}
+		return []byte(""), nil
 	case "SETRANGE":
 	case "SETNX":
 	case "MGET":
 	case "MSET":
 	case "MSETNX":
 	case "RENAME":
-
+	case "FLUSHDB":
 	default:
 		return nil, ErrInvalidCommand
 	}

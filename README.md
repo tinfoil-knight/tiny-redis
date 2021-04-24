@@ -1,14 +1,16 @@
 # tiny-redis
 
-This project intends to be a rough implementation of the in-memory data store: [Redis](https://redis.io/)
+tiny-redis intends to be a rough implementation of the in-memory data store: [Redis](https://redis.io/).
 
 Note:
 - The parser implements a subset of [RESP3](https://github.com/antirez/RESP3/blob/master/spec.md) without the Attribute, Push and Streamed data types.
+- The project itself implements a subset of (occasionally feature incomplete) commands as available in Redis 6.2.
 
 ## Getting Started
 
 ### Pre-requisites
-- [Go >=1.1](https://golang.org/)
+- [Go >= 1.1](https://golang.org/)
+- [GNU Make](https://www.gnu.org/software/make/)
 
 ### Running locally
 
@@ -28,6 +30,12 @@ Or you can start a redis client using the Redis CLI: `redis-cli -p 8001` and the
 ```bash
 127.0.0.1:8001> SET hello 3
 OK
+```
+
+### Creating a build
+
+```bash
+make build
 ```
 
 ### Running tests
@@ -50,7 +58,7 @@ make test
 
 - Connection: `PING`, `ECHO`
 - Keys: `DEL`, `EXISTS`
-- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`
+- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`
 - Server: `SAVE`
 
 > Note: Some commands may not support all options available in Redis 6.
