@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -43,14 +44,17 @@ func handleConn(kv *store.Store, c net.Conn) {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", "localhost:8001")
+	port := flag.Int("p", 8001, "sets tcp port")
+	flag.Parse()
+	address := fmt.Sprintf("[::1]:%d", *port)
+	l, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer listener.Close()
+	defer l.Close()
 	kv := store.New()
 	for {
-		conn, err := listener.Accept()
+		conn, err := l.Accept()
 		if err != nil {
 			log.Print(err)
 			continue
