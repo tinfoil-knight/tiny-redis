@@ -8,6 +8,7 @@ import (
 
 	"github.com/tinfoil-knight/tiny-redis/commands"
 	"github.com/tinfoil-knight/tiny-redis/resp"
+	"github.com/tinfoil-knight/tiny-redis/store"
 )
 
 func untilEOF(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -20,7 +21,7 @@ func untilEOF(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	return len(data), data, nil
 }
 
-func handleConn(c net.Conn) {
+func handleConn(kv *store.Store, c net.Conn) {
 	defer c.Close()
 	scanner := bufio.NewScanner(c)
 	scanner.Split(untilEOF)
@@ -32,7 +33,7 @@ func handleConn(c net.Conn) {
 	fmt.Printf("Recv: %+q\n", bytes)
 	val, _ := resp.Decode(bytes)
 	fmt.Printf("Parsed: %s\n", val)
-	v, err := commands.ExecuteCommand(val)
+	v, err := commands.ExecuteCommand(kv, val)
 	fmt.Printf("Send: %+q\n", resp.Encode(v))
 	if err != nil {
 		c.Write([]byte(resp.Encode(err)))
@@ -47,12 +48,13 @@ func main() {
 		log.Fatal(err)
 	}
 	defer listener.Close()
+	kv := store.New()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			log.Print(err)
 			continue
 		}
-		go handleConn(conn)
+		go handleConn(kv, conn)
 	}
 }

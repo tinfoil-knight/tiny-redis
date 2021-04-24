@@ -5,9 +5,12 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+
+	"github.com/tinfoil-knight/tiny-redis/store"
 )
 
 func Test__PING_ECHO(t *testing.T) {
+	kv := store.New()
 	tests := []struct {
 		input    []string
 		expected interface{}
@@ -17,7 +20,7 @@ func Test__PING_ECHO(t *testing.T) {
 		{[]string{"ECHO", "hey"}, "hey"},
 	}
 	for _, tt := range tests {
-		v, _ := ExecuteCommand(tt.input)
+		v, _ := ExecuteCommand(kv, tt.input)
 		got := fmt.Sprintf("%s", v)
 		if got != tt.expected {
 			t.Errorf("ExecuteCommand(%q): got %q want %q", tt.input, got, tt.expected)
@@ -26,8 +29,9 @@ func Test__PING_ECHO(t *testing.T) {
 }
 
 func Test__GETRANGE(t *testing.T) {
+	kv := store.New()
 	s := "Hello, world"
-	ExecuteCommand([]string{"SET", "preset", s})
+	kv.Set("preset", s)
 
 	tests := []struct {
 		start    int
@@ -53,7 +57,7 @@ func Test__GETRANGE(t *testing.T) {
 		keys := map[string]string{"preset": tt.expected, "notset": ""}
 		for k, v := range keys {
 			input := []string{"GETRANGE", k, strconv.Itoa(tt.start), strconv.Itoa(tt.end)}
-			got, _ := ExecuteCommand(input)
+			got, _ := ExecuteCommand(kv, input)
 			if !reflect.DeepEqual(got, []byte(v)) {
 				t.Errorf("ExecuteCommand(%q): got %q want %q", input, got, tt.expected)
 			}

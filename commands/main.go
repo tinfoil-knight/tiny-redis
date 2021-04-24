@@ -9,6 +9,8 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+
+	"github.com/tinfoil-knight/tiny-redis/store"
 )
 
 var (
@@ -17,10 +19,8 @@ var (
 	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
 )
 
-var kv = make(map[string]string)
-
-func ExecuteCommand(arr interface{}) (interface{}, error) {
-	s := reflect.ValueOf(arr)
+func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err error) {
+	s := reflect.ValueOf(cmdSeq)
 	cmd := fmt.Sprintf("%s", s.Index(0))
 	switch cmd {
 	case "PING":
@@ -43,7 +43,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		if v, ok := kv[key]; ok {
+		if v, ok := kv.Get(key); ok {
 			return []byte(v), nil
 		}
 		return nil, nil
@@ -52,7 +52,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		kv[key] = fmt.Sprintf("%s", s.Index(2))
+		v := fmt.Sprintf("%s", s.Index(2))
+		kv.Set(key, v)
 		return "OK", nil
 	case "DEL":
 		if s.Len() < 2 {
@@ -61,8 +62,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		n := 0
 		for count := 1; count < s.Len(); count++ {
 			key := fmt.Sprintf("%s", s.Index(count))
-			if _, ok := kv[key]; ok {
-				delete(kv, key)
+			if _, ok := kv.Get(key); ok {
+				kv.Del(key)
 				n++
 			}
 		}
@@ -72,8 +73,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		if v, ok := kv[key]; ok {
-			delete(kv, key)
+		if v, ok := kv.Get(key); ok {
+			kv.Del(key)
 			return []byte(v), nil
 		}
 		return nil, nil
@@ -84,7 +85,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		n := 0
 		for count := 1; count < s.Len(); count++ {
 			key := fmt.Sprintf("%s", s.Index(count))
-			if _, ok := kv[key]; ok {
+			if _, ok := kv.Get(key); ok {
 				n++
 			}
 		}
@@ -94,32 +95,32 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		if str, ok := kv[key]; ok {
+		if str, ok := kv.Get(key); ok {
 			v, err := strconv.Atoi(str)
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v++
-			kv[key] = strconv.Itoa(v)
+			kv.Set(key, strconv.Itoa(v))
 			return v, nil
 		}
-		kv[key] = "1"
+		kv.Set(key, "1")
 		return 1, nil
 	case "DECR":
 		if s.Len() != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		if str, ok := kv[key]; ok {
+		if str, ok := kv.Get(key); ok {
 			v, err := strconv.Atoi(str)
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v--
-			kv[key] = strconv.Itoa(v)
+			kv.Set(key, strconv.Itoa(v))
 			return v, nil
 		}
-		kv[key] = "-1"
+		kv.Set(key, "-1")
 		return -1, nil
 	case "INCRBY":
 		if s.Len() != 3 {
@@ -130,16 +131,16 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		if err != nil {
 			return nil, ErrValNotIntOrOutOfRange
 		}
-		if str, ok := kv[key]; ok {
+		if str, ok := kv.Get(key); ok {
 			v, err := strconv.Atoi(str)
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v += incr
-			kv[key] = strconv.Itoa(v)
+			kv.Set(key, strconv.Itoa(v))
 			return v, nil
 		}
-		kv[key] = strconv.Itoa(incr)
+		kv.Set(key, strconv.Itoa(incr))
 		return incr, nil
 	case "DECRBY":
 		if s.Len() != 3 {
@@ -150,16 +151,16 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		if err != nil {
 			return nil, ErrValNotIntOrOutOfRange
 		}
-		if str, ok := kv[key]; ok {
+		if str, ok := kv.Get(key); ok {
 			v, err := strconv.Atoi(str)
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v -= decr
-			kv[key] = strconv.Itoa(v)
+			kv.Set(key, strconv.Itoa(v))
 			return v, nil
 		}
-		kv[key] = strconv.Itoa(-decr)
+		kv.Set(key, strconv.Itoa(-decr))
 		return -decr, nil
 	case "APPEND":
 		if s.Len() != 3 {
@@ -167,12 +168,12 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
 		value := fmt.Sprintf("%s", s.Index(2))
-		if v, ok := kv[key]; ok {
+		if v, ok := kv.Get(key); ok {
 			v += value
-			kv[key] = v
+			kv.Set(key, v)
 			return len(v), nil
 		}
-		kv[key] = value
+		kv.Set(key, value)
 		return len(value), nil
 	case "GETBIT":
 	case "SETBIT":
@@ -196,7 +197,7 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := fmt.Sprintf("%s", s.Index(1))
-		if v, ok := kv[key]; ok {
+		if v, ok := kv.Get(key); ok {
 			l := len(v)
 			start, err1 := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
 			end, err2 := strconv.Atoi(fmt.Sprintf("%s", s.Index(3)))
@@ -226,10 +227,8 @@ func ExecuteCommand(arr interface{}) (interface{}, error) {
 	case "MSETNX":
 	case "RENAME":
 	case "FLUSHDB":
-	default:
-		return nil, ErrInvalidCommand
 	}
-	return nil, errors.New("commands.ExecuteCommand: unknown error")
+	return nil, ErrInvalidCommand
 }
 
 // func load() {
