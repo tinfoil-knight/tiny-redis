@@ -178,7 +178,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 	case "GETBIT":
 	case "SETBIT":
 	case "SAVE":
-		f, err := os.OpenFile("dump.tdb", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile("dump.trdb", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -238,7 +238,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 }
 
 // func load() {
-// 	f, err := os.Open("dump.tdb")
+// 	f, err := os.Open("dump.trdb")
 // 	if err != nil {
 // 		panic(err)
 // 	}

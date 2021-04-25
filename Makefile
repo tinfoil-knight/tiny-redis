@@ -22,6 +22,6 @@ build:
 clean:
 	@echo "> Cleaning build cache and temporary files generated from tests"
 	go clean
-	rm -rf tmp bin *.rdb *.out
+	rm -rf tmp bin *.rdb *.trdb *.out
 
 .PHONY: run test coverage format clean build
