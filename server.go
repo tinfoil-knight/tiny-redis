@@ -46,8 +46,9 @@ func handleConn(kv *store.Store, c net.Conn) {
 func main() {
 	port := flag.Int("p", 8001, "sets tcp port")
 	flag.Parse()
-	address := fmt.Sprintf("[::1]:%d", *port)
+	address := fmt.Sprintf("[::]:%d", *port)
 	l, err := net.Listen("tcp", address)
+	fmt.Printf("Listening at: %s\n", l.Addr())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -4,7 +4,7 @@ tiny-redis intends to be a rough implementation of the in-memory data store: [Re
 
 Note:
 - The parser implements a subset of [RESP3](https://github.com/antirez/RESP3/blob/master/spec.md) without the Attribute, Push and Streamed data types.
-- The project itself implements a subset of (occasionally feature incomplete) commands as available in Redis 6.2.
+- The project itself implements a subset of commands as specified in [redis-doc](https://github.com/redis/redis-doc/tree/42ccc962f01baad22fecd4ee1b58e1808ddc49fc/commands).
 
 ## Getting Started
 
@@ -58,7 +58,7 @@ make test
 
 - Connection: `PING`, `ECHO`
 - Keys: `DEL`, `EXISTS`
-- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`
+- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`
 - Server: `SAVE`
 
 > Note: Some commands may not support all options available in Redis 6.

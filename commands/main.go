@@ -192,6 +192,12 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		return "OK", nil
 	case "STRLEN":
+		if s.Len() != 2 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		v, _ := kv.Get(key)
+		return len(v), nil
 	case "GETRANGE":
 		if s.Len() != 4 {
 			return nil, ErrWrongNumOfArgs
