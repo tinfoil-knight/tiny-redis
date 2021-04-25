@@ -184,7 +184,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		defer f.Close()
 		b := new(bytes.Buffer)
-		if err = gob.NewEncoder(b).Encode(kv); err != nil {
+		if err = gob.NewEncoder(b).Encode(kv.GetUnderlying()); err != nil {
 			panic(err)
 		}
 		if _, err = io.Copy(f, b); err != nil {
@@ -236,15 +236,3 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 	}
 	return nil, ErrInvalidCommand
 }
-
-// func load() {
-// 	f, err := os.Open("dump.trdb")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer f.Close()
-// 	if err = gob.NewDecoder(f).Decode(&kv); err != nil {
-// 		panic(err)
-// 	}
-// 	fmt.Printf("%#v\n", kv)
-// }
