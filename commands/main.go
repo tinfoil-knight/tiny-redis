@@ -20,6 +20,8 @@ var (
 	ErrOffsetOutOfRange      = errors.New("ERR offset is out of range")
 )
 
+const NUL = "\u0000"
+
 func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err error) {
 	s := reflect.ValueOf(cmdSeq)
 	cmd := fmt.Sprintf("%s", s.Index(0))
@@ -241,14 +243,19 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		if offset < 0 {
 			return nil, ErrOffsetOutOfRange
 		}
-		if offset > len(v) {
+		if offset >= len(v) {
 			d := offset - len(v)
-			NULL := "\u0000"
 			for i := 0; i < d; i++ {
-				v += fmt.Sprintf("%v", NULL)
+				v += fmt.Sprintf("%v", NUL)
+			}
+			v += value
+		} else {
+			if len(value) < len(v) {
+				v = v[:offset] + value + v[len(value)+offset:]
+			} else {
+				v = v[:offset] + value
 			}
 		}
-		v += value
 		kv.Set(key, v)
 		return len(v), nil
 	case "SETNX":

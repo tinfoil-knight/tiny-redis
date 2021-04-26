@@ -64,3 +64,42 @@ func Test__GETRANGE(t *testing.T) {
 		}
 	}
 }
+
+func Test__SETRANGE(t *testing.T) {
+	kv := store.New()
+	s := "Hello World"
+	for i := 1; i < 6; i++ {
+		kv.Set(fmt.Sprintf("preset%d", i), s)
+	}
+
+	tests := []struct {
+		key      string
+		offset   int
+		value    string
+		expected string
+	}{
+		// offset < len(v); valLen < len(v)
+		{"preset1", 6, "Redis", "Hello Redis"},
+		// offset < len(v); valLen = len(v)
+		{"preset2", 6, "Happy Seals", "Hello Happy Seals"},
+		// offset < len(v); valLen < len(v)
+		{"preset3", 0, "Happy", "Happy World"},
+		// offset = len(v)
+		{"preset4", 11, ", Bye", s + ", Bye"},
+		// offset > len(v); valLen < len(v)
+		{"preset5", len(s) + 1, "Bye", "Hello World\x00Bye"},
+		// @ offset > len(v)
+		{"notset1", 0, "Hello", "Hello"},
+		// @ offset > len(v)
+		{"notset2", 6, "Hello", "\x00\x00\x00\x00\x00\x00Hello"},
+	}
+
+	for _, tt := range tests {
+		input := []string{"SETRANGE", tt.key, strconv.Itoa(tt.offset), tt.value}
+		got, _ := ExecuteCommand(kv, input)
+		v, _ := kv.Get(tt.key)
+		if got != len(tt.expected) || v != tt.expected {
+			t.Errorf("ExecuteCommand(%q): got %q with len %d want %q with len %d", input, v, got, tt.expected, len(tt.expected))
+		}
+	}
+}
