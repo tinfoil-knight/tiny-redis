@@ -51,10 +51,10 @@ func main() {
 	host := "[::]"
 	address := fmt.Sprintf("%s:%d", host, *port)
 	l, err := net.Listen("tcp", address)
-	fmt.Printf("Listening at: %s\n", l.Addr())
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("Listening at: %s\n", l.Addr())
 	defer l.Close()
 	kv := store.New()
 	for {
