@@ -17,7 +17,7 @@ Note:
 ```bash
 make run
 ```
-> Note: The examples assume that the TCP server is running on localhost at port 8001
+> Note: The examples assume that the TCP server is running on localhost at port 8001.
 
 ### Usage
 

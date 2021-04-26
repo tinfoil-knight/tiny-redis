@@ -31,22 +31,25 @@ func handleConn(kv *store.Store, c net.Conn) {
 		panic(err)
 	}
 	bytes := scanner.Bytes()
-	fmt.Printf("Recv: %+q\n", bytes)
-	val, _ := resp.Decode(bytes)
-	fmt.Printf("Parsed: %s\n", val)
-	v, err := commands.ExecuteCommand(kv, val)
-	fmt.Printf("Send: %+q\n", resp.Encode(v))
-	if err != nil {
-		c.Write([]byte(resp.Encode(err)))
-	} else {
-		c.Write([]byte(resp.Encode(v)))
+	if !(len(bytes) == 0) {
+		fmt.Printf("Recv: %+q\n", bytes)
+		val, _ := resp.Decode(bytes)
+		fmt.Printf("Parsed: %s\n", val)
+		v, err := commands.ExecuteCommand(kv, val)
+		fmt.Printf("Send: %+q\n", resp.Encode(v))
+		if err != nil {
+			c.Write([]byte(resp.Encode(err)))
+		} else {
+			c.Write([]byte(resp.Encode(v)))
+		}
 	}
 }
 
 func main() {
 	port := flag.Int("p", 8001, "sets tcp port")
 	flag.Parse()
-	address := fmt.Sprintf("[::]:%d", *port)
+	host := "[::]"
+	address := fmt.Sprintf("%s:%d", host, *port)
 	l, err := net.Listen("tcp", address)
 	fmt.Printf("Listening at: %s\n", l.Addr())
 	if err != nil {
