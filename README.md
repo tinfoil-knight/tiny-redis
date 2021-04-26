@@ -59,7 +59,7 @@ make test
 
 - Connection: `PING`, `ECHO`
 - Keys: `DEL`, `EXISTS`
-- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`
+- Strings: `GET`, `SET`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`, `SETRANGE`
 - Server: `SAVE`
 
 > Note: Some commands may not support all options available in Redis 6.

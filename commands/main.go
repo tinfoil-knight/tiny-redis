@@ -17,6 +17,7 @@ var (
 	ErrInvalidCommand        = errors.New("ERR unknown command")
 	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
 	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
+	ErrOffsetOutOfRange      = errors.New("ERR offset is out of range")
 )
 
 func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err error) {
@@ -227,6 +228,29 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		return []byte(""), nil
 	case "SETRANGE":
+		if s.Len() != 4 {
+			return nil, ErrWrongNumOfArgs
+		}
+		key := fmt.Sprintf("%s", s.Index(1))
+		offset, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		if err != nil {
+			return nil, ErrValNotIntOrOutOfRange
+		}
+		value := fmt.Sprintf("%s", s.Index(3))
+		v, _ := kv.Get(key)
+		if offset < 0 {
+			return nil, ErrOffsetOutOfRange
+		}
+		if offset > len(v) {
+			d := offset - len(v)
+			NULL := "\u0000"
+			for i := 0; i < d; i++ {
+				v += fmt.Sprintf("%v", NULL)
+			}
+		}
+		v += value
+		kv.Set(key, v)
+		return len(v), nil
 	case "SETNX":
 	case "MGET":
 	case "MSET":
