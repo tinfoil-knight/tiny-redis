@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/tinfoil-knight/tiny-redis/store"
 )
@@ -24,7 +25,7 @@ const NUL = "\u0000"
 
 func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err error) {
 	s := reflect.ValueOf(cmdSeq)
-	cmd := fmt.Sprintf("%s", s.Index(0))
+	cmd := strings.ToUpper(fmt.Sprintf("%s", s.Index(0)))
 	switch cmd {
 	case "PING":
 		if s.Len() > 2 {
