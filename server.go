@@ -48,14 +48,18 @@ func handleConn(kv *store.Store, c net.Conn) {
 			val = bytes.Split(bytes.TrimSuffix(byts, LF), SP)
 		}
 		fmt.Printf("Parsed: %s\n", val)
-		_, ok := val.([]interface{})
-		if !(ok) {
-			v, err := commands.ExecuteCommand(kv, val)
-			fmt.Printf("Send: %+q\n", resp.Encode(v))
-			if err != nil {
-				c.Write([]byte(resp.Encode(err)))
+		v, ok := val.([]interface{})
+		if !(len(v) == 0) {
+			if ok {
+				v, err := commands.ExecuteCommand(kv, val)
+				fmt.Printf("Send: %+q\n", resp.Encode(v))
+				if err != nil {
+					c.Write([]byte(resp.Encode(err)))
+				} else {
+					c.Write([]byte(resp.Encode(v)))
+				}
 			} else {
-				c.Write([]byte(resp.Encode(v)))
+				c.Write([]byte(resp.Encode(resp.ErrInvalidSyntax)))
 			}
 		}
 	}

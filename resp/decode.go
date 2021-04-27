@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrInvalidDataType = errors.New("invalid datatype")
-	ErrInvalidInput    = errors.New("invalid input")
+	ErrInvalidSyntax = errors.New("invalid syntax")
+	ErrInvalidInput  = errors.New("invalid input")
 )
 
 const (
@@ -52,7 +52,7 @@ func Decode(input []byte) (decodedValue interface{}, read int) {
 	case NULL:
 		return nil, 3
 	}
-	return ErrInvalidDataType, 1
+	return ErrInvalidSyntax, 1
 }
 
 func readUntilCRLF(bytes []byte) (string, int) {
