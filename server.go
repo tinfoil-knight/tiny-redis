@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -10,6 +11,11 @@ import (
 	"github.com/tinfoil-knight/tiny-redis/commands"
 	"github.com/tinfoil-knight/tiny-redis/resp"
 	"github.com/tinfoil-knight/tiny-redis/store"
+)
+
+var (
+	LF = []byte("\n")
+	SP = []byte(" ")
 )
 
 func untilEOF(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -30,17 +36,27 @@ func handleConn(kv *store.Store, c net.Conn) {
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
-	bytes := scanner.Bytes()
-	if !(len(bytes) == 0) {
-		fmt.Printf("Recv: %+q\n", bytes)
-		val, _ := resp.Decode(bytes)
-		fmt.Printf("Parsed: %s\n", val)
-		v, err := commands.ExecuteCommand(kv, val)
-		fmt.Printf("Send: %+q\n", resp.Encode(v))
-		if err != nil {
-			c.Write([]byte(resp.Encode(err)))
+	byts := scanner.Bytes()
+	if !(len(byts) == 0) {
+		fmt.Printf("Recv: %+q\n", byts)
+		var val interface{}
+		if byts[0] == '*' {
+			// resp
+			val, _ = resp.Decode(byts)
 		} else {
-			c.Write([]byte(resp.Encode(v)))
+			// inline command format
+			val = bytes.Split(bytes.TrimSuffix(byts, LF), SP)
+		}
+		fmt.Printf("Parsed: %s\n", val)
+		_, ok := val.([]interface{})
+		if !(ok) {
+			v, err := commands.ExecuteCommand(kv, val)
+			fmt.Printf("Send: %+q\n", resp.Encode(v))
+			if err != nil {
+				c.Write([]byte(resp.Encode(err)))
+			} else {
+				c.Write([]byte(resp.Encode(v)))
+			}
 		}
 	}
 }
