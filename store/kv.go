@@ -6,12 +6,12 @@ import (
 )
 
 type Store struct {
-	underlying map[string]string
+	underlying map[string]([]byte)
 }
 
 func New() *Store {
 	kv := Store{
-		underlying: make(map[string]string),
+		underlying: make(map[string]([]byte)),
 	}
 	defaultPath := "dump.trdb"
 	f, err := os.Open(defaultPath)
@@ -29,19 +29,19 @@ func New() *Store {
 	return &kv
 }
 
-func (kv *Store) Set(key, value string) {
-	kv.underlying[key] = value
+func (kv *Store) Set(key []byte, value []byte) {
+	kv.underlying[string(key)] = value
 }
 
-func (kv *Store) Get(key string) (value string, ok bool) {
-	v, ok := kv.underlying[key]
+func (kv *Store) Get(key []byte) (value []byte, ok bool) {
+	v, ok := kv.underlying[string(key)]
 	return v, ok
 }
 
-func (kv *Store) Del(key string) {
-	delete(kv.underlying, key)
+func (kv *Store) Del(key []byte) {
+	delete(kv.underlying, string(key))
 }
 
-func (kv *Store) GetUnderlying() *map[string]string {
+func (kv *Store) GetUnderlying() *map[string]([]byte) {
 	return &kv.underlying
 }

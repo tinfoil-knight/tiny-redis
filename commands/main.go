@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -23,49 +22,48 @@ var (
 
 const NUL = "\u0000"
 
-func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err error) {
-	s := reflect.ValueOf(cmdSeq)
-	cmd := strings.ToUpper(fmt.Sprintf("%s", s.Index(0)))
+func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err error) {
+	s := cmdSeq
+	sLen := len(s)
+	cmd := strings.ToUpper(string(s[0]))
 	switch cmd {
 	case "PING":
-		if s.Len() > 2 {
+		if sLen > 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		if s.Len() == 2 {
-			arg := fmt.Sprintf("%s", s.Index(1))
-			return []byte(arg), nil
+		if sLen == 2 {
+			return s[1], nil
 		}
 		return "PONG", nil
 	case "ECHO":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		arg := fmt.Sprintf("%s", s.Index(1))
-		return []byte(arg), nil
+		return s[1], nil
 	case "GET":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
+		key := s[1]
 		if v, ok := kv.Get(key); ok {
-			return []byte(v), nil
+			return v, nil
 		}
 		return nil, nil
 	case "SET":
-		if s.Len() != 3 {
+		if sLen != 3 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		v := fmt.Sprintf("%s", s.Index(2))
+		key := s[1]
+		v := s[2]
 		kv.Set(key, v)
 		return "OK", nil
 	case "DEL":
-		if s.Len() < 2 {
+		if sLen < 2 {
 			return nil, ErrWrongNumOfArgs
 		}
 		n := 0
-		for count := 1; count < s.Len(); count++ {
-			key := fmt.Sprintf("%s", s.Index(count))
+		for count := 1; count < sLen; count++ {
+			key := s[count]
 			if _, ok := kv.Get(key); ok {
 				kv.Del(key)
 				n++
@@ -73,111 +71,113 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		return n, nil
 	case "GETDEL":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
+		key := s[1]
 		if v, ok := kv.Get(key); ok {
 			kv.Del(key)
-			return []byte(v), nil
+			return v, nil
 		}
 		return nil, nil
 	case "EXISTS":
-		if s.Len() < 2 {
+		if sLen < 2 {
 			return nil, ErrWrongNumOfArgs
 		}
 		n := 0
-		for count := 1; count < s.Len(); count++ {
-			key := fmt.Sprintf("%s", s.Index(count))
+		for count := 1; count < sLen; count++ {
+			key := s[count]
 			if _, ok := kv.Get(key); ok {
 				n++
 			}
 		}
 		return n, nil
 	case "INCR":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
+		key := s[1]
 		if str, ok := kv.Get(key); ok {
-			v, err := strconv.Atoi(str)
+			v, err := strconv.Atoi(string(str))
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v++
-			kv.Set(key, strconv.Itoa(v))
+			kv.Set(key, []byte(strconv.Itoa(v)))
 			return v, nil
 		}
-		kv.Set(key, "1")
+		kv.Set(key, []byte("1"))
 		return 1, nil
 	case "DECR":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		if str, ok := kv.Get(key); ok {
-			v, err := strconv.Atoi(str)
+		key := s[1]
+		if byts, ok := kv.Get(key); ok {
+			v, err := strconv.Atoi(string(byts))
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v--
-			kv.Set(key, strconv.Itoa(v))
+			kv.Set(key, []byte(strconv.Itoa(v)))
 			return v, nil
 		}
-		kv.Set(key, "-1")
+		kv.Set(key, []byte("-1"))
 		return -1, nil
 	case "INCRBY":
-		if s.Len() != 3 {
+		if sLen != 3 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		incr, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		key := s[1]
+		incr, err := strconv.Atoi(string(s[2]))
 		if err != nil {
 			return nil, ErrValNotIntOrOutOfRange
 		}
-		if str, ok := kv.Get(key); ok {
-			v, err := strconv.Atoi(str)
+		if byts, ok := kv.Get(key); ok {
+			v, err := strconv.Atoi(string(byts))
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v += incr
-			kv.Set(key, strconv.Itoa(v))
+			kv.Set(key, []byte(strconv.Itoa(v)))
 			return v, nil
 		}
-		kv.Set(key, strconv.Itoa(incr))
+		kv.Set(key, []byte(strconv.Itoa(incr)))
 		return incr, nil
 	case "DECRBY":
-		if s.Len() != 3 {
+		if sLen != 3 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		decr, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		key := s[1]
+		decr, err := strconv.Atoi(string(s[2]))
 		if err != nil {
 			return nil, ErrValNotIntOrOutOfRange
 		}
-		if str, ok := kv.Get(key); ok {
-			v, err := strconv.Atoi(str)
+		if byts, ok := kv.Get(key); ok {
+			v, err := strconv.Atoi(string(byts))
 			if err != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			v -= decr
-			kv.Set(key, strconv.Itoa(v))
+			kv.Set(key, []byte(strconv.Itoa(v)))
 			return v, nil
 		}
-		kv.Set(key, strconv.Itoa(-decr))
+		kv.Set(key, []byte(strconv.Itoa(-decr)))
 		return -decr, nil
 	case "APPEND":
-		if s.Len() != 3 {
+		if sLen != 3 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		value := fmt.Sprintf("%s", s.Index(2))
+		// TODO: handle as bytes
+		key := s[1]
+		value := string(s[2])
 		if v, ok := kv.Get(key); ok {
-			v += value
-			kv.Set(key, v)
-			return len(v), nil
+			c := string(v)
+			c += value
+			kv.Set(key, []byte(c))
+			return len(c), nil
 		}
-		kv.Set(key, value)
+		kv.Set(key, []byte(value))
 		return len(value), nil
 	case "GETBIT":
 	case "SETBIT":
@@ -196,21 +196,21 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		return "OK", nil
 	case "STRLEN":
-		if s.Len() != 2 {
+		if sLen != 2 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
+		key := s[1]
 		v, _ := kv.Get(key)
 		return len(v), nil
 	case "GETRANGE":
-		if s.Len() != 4 {
+		if sLen != 4 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
+		key := s[1]
 		if v, ok := kv.Get(key); ok {
 			l := len(v)
-			start, err1 := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
-			end, err2 := strconv.Atoi(fmt.Sprintf("%s", s.Index(3)))
+			start, err1 := strconv.Atoi(string(s[2]))
+			end, err2 := strconv.Atoi(string(s[3]))
 			if err1 != nil || err2 != nil {
 				return nil, ErrValNotIntOrOutOfRange
 			}
@@ -231,34 +231,36 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 		}
 		return []byte(""), nil
 	case "SETRANGE":
-		if s.Len() != 4 {
+		if sLen != 4 {
 			return nil, ErrWrongNumOfArgs
 		}
-		key := fmt.Sprintf("%s", s.Index(1))
-		offset, err := strconv.Atoi(fmt.Sprintf("%s", s.Index(2)))
+		// TODO: handle as bytes
+		key := s[1]
+		offset, err := strconv.Atoi(string(s[2]))
 		if err != nil {
 			return nil, ErrValNotIntOrOutOfRange
 		}
-		value := fmt.Sprintf("%s", s.Index(3))
+		value := string(s[3])
 		v, _ := kv.Get(key)
 		if offset < 0 {
 			return nil, ErrOffsetOutOfRange
 		}
+		c := string(v)
 		if offset >= len(v) {
 			d := offset - len(v)
 			for i := 0; i < d; i++ {
-				v += fmt.Sprintf("%v", NUL)
+				c += fmt.Sprintf("%v", NUL)
 			}
-			v += value
+			c += value
 		} else {
 			if len(value) < len(v) {
-				v = v[:offset] + value + v[len(value)+offset:]
+				c = c[:offset] + value + c[len(value)+offset:]
 			} else {
-				v = v[:offset] + value
+				c = c[:offset] + value
 			}
 		}
-		kv.Set(key, v)
-		return len(v), nil
+		kv.Set(key, []byte(c))
+		return len(c), nil
 	case "SETNX":
 	case "MGET":
 	case "MSET":
@@ -266,5 +268,6 @@ func ExecuteCommand(kv *store.Store, cmdSeq interface{}) (res interface{}, err e
 	case "RENAME":
 	case "FLUSHDB":
 	}
+	// TODO(fix): This error isn't sent back
 	return nil, ErrInvalidCommand
 }

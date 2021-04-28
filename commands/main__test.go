@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -9,15 +10,27 @@ import (
 	"github.com/tinfoil-knight/tiny-redis/store"
 )
 
+func b(x string) []byte {
+	return []byte(x)
+}
+
+func bA(x []string) [][]byte {
+	arr := make([][]byte, len(x))
+	for i := range arr {
+		arr[i] = []byte(x[i])
+	}
+	return arr
+}
+
 func Test__PING_ECHO(t *testing.T) {
 	kv := store.New()
 	tests := []struct {
-		input    []string
+		input    []([]byte)
 		expected interface{}
 	}{
-		{[]string{"PING"}, "PONG"},
-		{[]string{"PING", "hey"}, "hey"},
-		{[]string{"ECHO", "hey"}, "hey"},
+		{bA([]string{"PING"}), "PONG"},
+		{bA([]string{"PING", "hey"}), "hey"},
+		{bA([]string{"ECHO", "hey"}), "hey"},
 	}
 	for _, tt := range tests {
 		v, _ := ExecuteCommand(kv, tt.input)
@@ -31,7 +44,7 @@ func Test__PING_ECHO(t *testing.T) {
 func Test__GETRANGE(t *testing.T) {
 	kv := store.New()
 	s := "Hello, world"
-	kv.Set("preset", s)
+	kv.Set(b("preset"), b(s))
 
 	tests := []struct {
 		start    int
@@ -57,7 +70,7 @@ func Test__GETRANGE(t *testing.T) {
 		keys := map[string]string{"preset": tt.expected, "notset": ""}
 		for k, v := range keys {
 			input := []string{"GETRANGE", k, strconv.Itoa(tt.start), strconv.Itoa(tt.end)}
-			got, _ := ExecuteCommand(kv, input)
+			got, _ := ExecuteCommand(kv, bA(input))
 			if !reflect.DeepEqual(got, []byte(v)) {
 				t.Errorf("ExecuteCommand(%q): got %q want %q", input, got, tt.expected)
 			}
@@ -69,7 +82,7 @@ func Test__SETRANGE(t *testing.T) {
 	kv := store.New()
 	s := "Hello World"
 	for i := 1; i < 6; i++ {
-		kv.Set(fmt.Sprintf("preset%d", i), s)
+		kv.Set(b(fmt.Sprintf("preset%d", i)), b(s))
 	}
 
 	tests := []struct {
@@ -96,10 +109,12 @@ func Test__SETRANGE(t *testing.T) {
 
 	for _, tt := range tests {
 		input := []string{"SETRANGE", tt.key, strconv.Itoa(tt.offset), tt.value}
-		got, _ := ExecuteCommand(kv, input)
-		v, _ := kv.Get(tt.key)
-		if got != len(tt.expected) || v != tt.expected {
-			t.Errorf("ExecuteCommand(%q): got %q with len %d want %q with len %d", input, v, got, tt.expected, len(tt.expected))
+		got, _ := ExecuteCommand(kv, bA(input))
+		v, _ := kv.Get(b(tt.key))
+		e := tt.expected
+		eL := len(e)
+		if (got != eL) || !bytes.Equal(v, b(e)) {
+			t.Errorf("ExecuteCommand(%q): got %q with len %d want %q with len %d", input, v, got, e, eL)
 		}
 	}
 }

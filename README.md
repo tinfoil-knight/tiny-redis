@@ -27,7 +27,7 @@ You can run commands through [netcat](https://www.freebsd.org/cgi/man.cgi?nc) fo
 echo -e '*1\r\n$4\r\nPING\r\n' | nc localhost 8001
 ```
 
-Or you can start a redis client using the Redis CLI: `redis-cli -p 8001` and then use it in Interactive mode.
+Or you can start a redis client using the [redis-cli](https://redis.io/topics/rediscli): `redis-cli -p 8001` and then use it in Interactive mode.
 
 ```bash
 127.0.0.1:8001> SET hello 3

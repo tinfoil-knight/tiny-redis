@@ -47,20 +47,26 @@ func handleConn(kv *store.Store, c net.Conn) {
 			// inline command format
 			val = bytes.Split(bytes.TrimSuffix(byts, LF), SP)
 		}
-		fmt.Printf("Parsed: %s\n", val)
-		v, ok := val.([]interface{})
-		if !(len(v) == 0) {
-			if ok {
-				v, err := commands.ExecuteCommand(kv, val)
-				fmt.Printf("Send: %+q\n", resp.Encode(v))
-				if err != nil {
-					c.Write([]byte(resp.Encode(err)))
-				} else {
-					c.Write([]byte(resp.Encode(v)))
-				}
+		// TODO: find a better (faster) way to do type conversion here
+		// (encoding/gob?)
+		t := (val).([]interface{})
+		// error handling
+		s := make([][]byte, len(t))
+		for i, x := range t {
+			s[i] = x.([]byte)
+		}
+		// TODO(fix): flow control and error as per Redis
+		if len(s) != 0 {
+			r, err := commands.ExecuteCommand(kv, s)
+			if err != nil {
+				fmt.Printf("Send: %+q\n", resp.Encode(err))
+				c.Write([]byte(resp.Encode(err)))
 			} else {
-				c.Write([]byte(resp.Encode(resp.ErrInvalidSyntax)))
+				fmt.Printf("Send: %+q\n", resp.Encode(r))
+				c.Write([]byte(resp.Encode(r)))
 			}
+		} else {
+			c.Write([]byte(resp.Encode(resp.ErrInvalidSyntax)))
 		}
 	}
 }

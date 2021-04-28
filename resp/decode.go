@@ -1,3 +1,5 @@
+//lint:file-ignore ST1008 we want to return error from Decode
+
 // Package resp implements functions for decoding and encoding RESP 3.
 package resp
 
@@ -8,8 +10,8 @@ import (
 )
 
 var (
-	ErrInvalidSyntax = errors.New("invalid syntax")
-	ErrInvalidInput  = errors.New("invalid input")
+	ErrInvalidSyntax = errors.New("ERR invalid syntax")
+	ErrInvalidInput  = errors.New("ERR invalid input")
 )
 
 const (
@@ -133,7 +135,7 @@ func handleBulkError(in []byte) (error, int) {
 	return errors.New(v.(string)), read
 }
 
-func handleArray(in []byte) (interface{}, int) {
+func handleArray(in []byte) ([]interface{}, int) {
 	length, read := readUntilCRLF(in)
 	size, _ := strconv.Atoi((length))
 	switch size {
