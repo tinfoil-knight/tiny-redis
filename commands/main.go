@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	ErrInvalidSyntax         = errors.New("ERR syntax error")
 	ErrInvalidCommand        = errors.New("ERR unknown command")
 	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
 	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
@@ -50,11 +51,56 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		return nil, nil
 	case "SET":
-		if sLen != 3 {
+		if sLen < 3 {
 			return nil, ErrWrongNumOfArgs
 		}
 		key := s[1]
 		v := s[2]
+
+		if sLen > 3 {
+			opts := s[2:sLen]
+			nx := contains(opts, "NX")
+			xx := contains(opts, "XX")
+			get := contains(opts, "GET")
+			switch btoI(nx, xx, get) {
+			case 3:
+				return nil, ErrInvalidSyntax
+			case 2:
+				if nx {
+					return nil, ErrInvalidSyntax
+				} else {
+					// Necessary to check this since arguments can be invalid
+					if get && xx {
+						r, ok := kv.Get(key)
+						if ok {
+							kv.Set(key, v)
+						}
+						return r, nil
+					}
+				}
+			case 1:
+				if nx {
+					_, ok := kv.Get(key)
+					if !ok {
+						kv.Set(key, v)
+						return "OK", nil
+					}
+					return nil, nil
+				} else if xx {
+					_, ok := kv.Get(key)
+					if ok {
+						kv.Set(key, v)
+						return "OK", nil
+					}
+					return nil, nil
+				} else if get {
+					r, _ := kv.Get(key)
+					kv.Set(key, v)
+					return r, nil
+				}
+			}
+			return nil, ErrInvalidSyntax
+		}
 		kv.Set(key, v)
 		return "OK", nil
 	case "DEL":
@@ -261,13 +307,30 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		kv.Set(key, []byte(c))
 		return len(c), nil
-	case "SETNX":
 	case "MGET":
 	case "MSET":
 	case "MSETNX":
 	case "RENAME":
 	case "FLUSHDB":
 	}
-	// TODO(fix): This error isn't sent back
 	return nil, ErrInvalidCommand
+}
+
+func contains(arr [][]byte, value string) bool {
+	for _, v := range arr {
+		if bytes.Equal(v, []byte(value)) {
+			return true
+		}
+	}
+	return false
+}
+
+func btoI(b ...bool) int {
+	n := 0
+	for _, v := range b {
+		if v {
+			n++
+		}
+	}
+	return n
 }

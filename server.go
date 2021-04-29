@@ -55,6 +55,7 @@ func handleConn(kv *store.Store, c net.Conn) {
 		for i, x := range t {
 			s[i] = x.([]byte)
 		}
+		fmt.Printf("Parse: %+q\n", s)
 		// TODO(fix): flow control and error as per Redis
 		if len(s) != 0 {
 			r, err := commands.ExecuteCommand(kv, s)
