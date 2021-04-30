@@ -310,6 +310,20 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		kv.Set(key, []byte(c))
 		return len(c), nil
 	case "MGET":
+		if sLen < 2 {
+			return nil, ErrWrongNumOfArgs
+		}
+		keys := s[1:]
+		r := make([][]byte, len(keys))
+		for i, key := range keys {
+			v, ok := kv.Get(key)
+			if ok {
+				r[i] = v
+			} else {
+				r[i] = []byte(nil)
+			}
+		}
+		return r, nil
 	case "MSET":
 	case "MSETNX":
 	case "RENAME":

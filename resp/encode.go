@@ -5,6 +5,8 @@ import (
 	"reflect"
 )
 
+const NIL = "_\r\n"
+
 func Encode(input interface{}) string {
 	switch input.(type) {
 	case int:
@@ -16,16 +18,20 @@ func Encode(input interface{}) string {
 		return fmt.Sprintf("$%v\r\n%s\r\n", len, input)
 	case error:
 		return fmt.Sprintf("-%s\r\n", input)
-	case []interface{}:
+	case [][]byte:
 		s := reflect.ValueOf(input)
 		v := fmt.Sprintf("*%v\r\n", s.Len())
 		for i := 0; i < s.Len(); i++ {
-			v += Encode(s.Index(i).Interface())
+			b := (s.Index(i).Interface()).([]byte)
+			if len(b) > 0 {
+				v += Encode(b)
+			} else {
+				v += Encode(nil)
+			}
 		}
 		return v
 	case nil:
-		return "_\r\n"
-	default:
-		panic(ErrInvalidSyntax)
+		return NIL
 	}
+	panic(ErrInvalidSyntax)
 }
