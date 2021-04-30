@@ -325,6 +325,14 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		return r, nil
 	case "MSET":
+		if sLen < 2 || (sLen&1 == 0) {
+			return nil, ErrWrongNumOfArgs
+		}
+		pairs := s[1:]
+		for i := 0; i < len(pairs)-1; i += 2 {
+			kv.Set(pairs[i], pairs[i+1])
+		}
+		return "OK", nil
 	case "MSETNX":
 	case "RENAME":
 	case "FLUSHDB":
