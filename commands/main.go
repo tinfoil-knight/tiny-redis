@@ -23,6 +23,8 @@ var (
 
 const NUL = "\u0000"
 
+var EMPTY = []byte("")
+
 func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err error) {
 	s := cmdSeq
 	sLen := len(s)
@@ -261,7 +263,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 				return nil, ErrValNotIntOrOutOfRange
 			}
 			if start >= l {
-				return []byte(""), nil
+				return EMPTY, nil
 			}
 			if end >= l {
 				end = l - 1
@@ -269,13 +271,13 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 			start = (start%l + l) % l
 			end = (end%l + l) % l
 			if start > end {
-				return []byte(""), nil
+				return EMPTY, nil
 			}
 			// GETRANGE is inclusive for both offsets
 			end++
 			return []byte(v[start:end]), nil
 		}
-		return []byte(""), nil
+		return EMPTY, nil
 	case "SETRANGE":
 		if sLen != 4 {
 			return nil, ErrWrongNumOfArgs

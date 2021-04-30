@@ -54,6 +54,11 @@ make test
 
 - [Exotel](https://exotel.com/) for their [tech-challenge](https://exotel.com/about-us/exotel-tech-challenge/) which gave me the idea to build this.
 
+## LICENSE
+
+- License for tiny-redis: [MIT](./LICENSE)
+- The Redis trademark is owned by Redis Labs.
+
 ## Appendix
 **A. List of Allowed Commands**
 
