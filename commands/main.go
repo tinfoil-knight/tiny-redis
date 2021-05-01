@@ -61,24 +61,17 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 
 		if sLen > 3 {
 			opts := s[2:sLen]
-			nx := contains(opts, "NX")
-			xx := contains(opts, "XX")
-			get := contains(opts, "GET")
+			nx := has(opts, "NX")
+			xx := has(opts, "XX")
+			get := has(opts, "GET")
 			switch btoI(nx, xx, get) {
-			case 3:
-				return nil, ErrInvalidSyntax
 			case 2:
-				if nx {
-					return nil, ErrInvalidSyntax
-				} else {
-					// Necessary to check this since arguments can be invalid
-					if get && xx {
-						r, ok := kv.Get(key)
-						if ok {
-							kv.Set(key, v)
-						}
-						return r, nil
+				if xx && get {
+					r, ok := kv.Get(key)
+					if ok {
+						kv.Set(key, v)
 					}
+					return r, nil
 				}
 			case 1:
 				if nx {
@@ -359,9 +352,9 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 	return nil, ErrInvalidCommand
 }
 
-func contains(arr [][]byte, value string) bool {
+func has(arr [][]byte, value string) bool {
 	for _, v := range arr {
-		if bytes.Equal(v, []byte(value)) {
+		if strings.ToUpper(string(v)) == value {
 			return true
 		}
 	}

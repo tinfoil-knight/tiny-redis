@@ -17,8 +17,9 @@
 # Log Files
 *.log
 
-# Custom
+# Misc
 /tmp
+.air.conf
 /bin
 *.rdb
 *.trdb
