@@ -325,7 +325,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		return r, nil
 	case "MSET":
-		if sLen < 2 || (sLen&1 == 0) {
+		if sLen < 3 || (sLen&1 == 0) {
 			return nil, ErrWrongNumOfArgs
 		}
 		pairs := s[1:]
@@ -334,6 +334,25 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		return "OK", nil
 	case "MSETNX":
+		if sLen < 3 || (sLen&1 == 0) {
+			return nil, ErrWrongNumOfArgs
+		}
+		// TODO: make the operation atomic
+		pairs := s[1:]
+		n := 0
+		for i := 0; i < len(pairs)-1; i += 2 {
+			_, ok := kv.Get(pairs[i])
+			if ok {
+				n++
+			}
+		}
+		if n > 0 {
+			return 0, nil
+		}
+		for i := 0; i < len(pairs)-1; i += 2 {
+			kv.Set(pairs[i], pairs[i+1])
+		}
+		return 1, nil
 	case "RENAME":
 	case "FLUSHDB":
 	}
