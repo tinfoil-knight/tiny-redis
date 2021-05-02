@@ -1,12 +1,8 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
 	"fmt"
-	"io"
-	"os"
 	"strconv"
 	"strings"
 
@@ -223,18 +219,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 	case "GETBIT":
 	case "SETBIT":
 	case "SAVE":
-		f, err := os.OpenFile("dump.trdb", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		b := new(bytes.Buffer)
-		if err = gob.NewEncoder(b).Encode(kv.GetUnderlying()); err != nil {
-			panic(err)
-		}
-		if _, err = io.Copy(f, b); err != nil {
-			panic(err)
-		}
+		kv.Save()
 		return "OK", nil
 	case "STRLEN":
 		if sLen != 2 {
