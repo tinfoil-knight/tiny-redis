@@ -71,9 +71,10 @@ make test
 
 **B. Allowed Configuration Parameters**
 
-| Flag | Explanation | Default Value |
-| ---- | ----------- | ------------- |
-| p    | TCP Port    | 8001          |
+| Flag | Explanation    | Default Value |
+| ---- | -------------- | ------------- |
+| port | TCP Port       | 8001          |
+| bind | IP or Hostname | [::]          |
 
 > Note: Currently, configuration is only supported through command line flags. Eg: go run server.go -p 6379
 
