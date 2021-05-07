@@ -30,6 +30,13 @@ func Encode(input interface{}) string {
 			}
 		}
 		return v
+	case []interface{}:
+		s := reflect.ValueOf(input)
+		v := fmt.Sprintf("*%v\r\n", s.Len())
+		for i := 0; i < s.Len(); i++ {
+			v += Encode(s.Index(i).Interface())
+		}
+		return v
 	case nil:
 		return NIL
 	}

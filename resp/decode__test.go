@@ -38,7 +38,6 @@ func Test__BulkString(t *testing.T) {
 	}{
 		{"$6\r\nfoobar\r\n", []byte("foobar")},
 		{"$0\r\n\r\n", []byte("")},
-		{"$-1\r\n", nil},
 	}
 
 	for _, tt := range tests {
@@ -65,9 +64,8 @@ func Test__Array(t *testing.T) {
 		{"*2\r\n+foo\r\n+bar\r\n", sliceOfStrings},
 		{"*3\r\n:1\r\n:2\r\n:3\r\n", sliceOfIntegers},
 		{"*5\r\n:1\r\n:2\r\n:3\r\n:4\r\n$6\r\nfoobar\r\n", sliceWithMixedTypes},
-		{"*-1\r\n", nil},
 		{"*2\r\n*3\r\n:1\r\n:2\r\n:3\r\n*2\r\n+foo\r\n+bar\r\n", nestedSlice},
-		{"*3\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n", sliceWithNull},
+		{"*3\r\n$3\r\nfoo\r\n_\r\n$3\r\nbar\r\n", sliceWithNull},
 	}
 	for _, tt := range tests {
 		got, _ := Decode([]byte(tt.input))

@@ -52,7 +52,7 @@ func Test__ArrayEn(t *testing.T) {
 	sliceOfIntegers := []interface{}{1, 2, 3}
 	sliceWithMixedTypes := []interface{}{1, 2, 3, 4, []byte("foobar")}
 	nestedSlice := []interface{}{sliceOfIntegers, sliceOfStrings}
-	sliceWithNull := []interface{}{[]byte("foo"), nil, []byte("bar")}
+	sliceWithNull := [][]byte{[]byte("foo"), nil, []byte("bar")}
 
 	tests := []struct {
 		input    interface{}

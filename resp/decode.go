@@ -52,7 +52,7 @@ func Decode(input []byte) (decodedValue interface{}, read int) {
 	case SET:
 		return handleSet(input[1:])
 	case NULL:
-		return nil, 3
+		return nil, 2
 	}
 	return ErrInvalidSyntax, 1
 }
@@ -122,8 +122,6 @@ func handleBulkString(in []byte) (interface{}, int) {
 	switch size {
 	case 0:
 		return []byte(""), read
-	case -1:
-		return nil, read
 	default:
 		val, r := readUntilCRLF(in[read:])
 		return []byte(val), read + r
@@ -142,15 +140,13 @@ func handleArray(in []byte) ([]interface{}, int) {
 	case 0:
 		empty := make([]interface{}, 0)
 		return empty, read
-	case -1:
-		return nil, read
 	default:
 		in = in[read:]
 		totalRead := read
 		items := make([]interface{}, size)
 		for counter := 0; counter < size; counter++ {
 			item, r := Decode([]byte(in))
-			// First byte is skipped in Decode
+			// first byte is skipped in Decode
 			totalRead += r + 1
 			in = in[r+1:]
 			items[counter] = item
