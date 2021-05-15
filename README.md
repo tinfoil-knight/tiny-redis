@@ -64,7 +64,7 @@ make test
 
 - Connection: `PING`, `ECHO`
 - Keys: `DEL`, `EXISTS`
-- Strings: `GET`, `SET [NX|XX] [GET]`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`, `SETRANGE`, `MGET`, `MSET`, `MSETNX`
+- Strings: `GET`, `SET [NX|XX] [GET]`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`, `SETRANGE`, `MGET`, `MSET`, `MSETNX`, `GETBIT`
 - Server: `SAVE`
 
 > Note: Some commands may not support all options available in Redis 6. All available options have been documented above.
@@ -76,6 +76,6 @@ make test
 | port | TCP Port       | 8001          |
 | bind | IP or Hostname | [::]          |
 
-> Note: Currently, configuration is only supported through command line flags. Eg: go run server.go -p 6379
+> Note: Currently, configuration is only supported through command line flags. Eg: `go run server.go -p 6379`
 
 

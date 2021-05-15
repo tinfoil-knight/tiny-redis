@@ -15,6 +15,7 @@ var (
 	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
 	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
 	ErrOffsetOutOfRange      = errors.New("ERR offset is out of range")
+	ErrBitNotIntOrOutOfRange = errors.New("ERR bit offset is not an integer or out of range")
 )
 
 const NUL = "\u0000"
@@ -217,6 +218,22 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		kv.Set(key, []byte(value))
 		return len(value), nil
 	case "GETBIT":
+		if sLen != 3 {
+			return nil, ErrWrongNumOfArgs
+		}
+		offset, err := strconv.Atoi(string(s[2]))
+		if err != nil || offset < 0 {
+			return nil, ErrBitNotIntOrOutOfRange
+		}
+		key := s[1]
+		v, ok := kv.Get(key)
+		if !ok {
+			return 0, nil
+		}
+		if offset >= len(v) || s[1][offset] == 0 {
+			return 0, nil
+		}
+		return 1, nil
 	case "SETBIT":
 	case "SAVE":
 		kv.Save()
