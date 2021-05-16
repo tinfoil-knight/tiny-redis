@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
@@ -10,12 +11,12 @@ import (
 )
 
 var (
-	ErrInvalidSyntax         = errors.New("ERR syntax error")
-	ErrInvalidCommand        = errors.New("ERR unknown command")
-	ErrWrongNumOfArgs        = errors.New("ERR wrong number of arguments")
-	ErrValNotIntOrOutOfRange = errors.New("ERR value is not an integer or out of range")
-	ErrOffsetOutOfRange      = errors.New("ERR offset is out of range")
-	ErrBitNotIntOrOutOfRange = errors.New("ERR bit offset is not an integer or out of range")
+	ErrInvalidSyntax               = errors.New("ERR syntax error")
+	ErrInvalidCommand              = errors.New("ERR unknown command")
+	ErrWrongNumOfArgs              = errors.New("ERR wrong number of arguments")
+	ErrValNotIntOrOutOfRange       = errors.New("ERR value is not an integer or out of range")
+	ErrOffsetOutOfRange            = errors.New("ERR offset is out of range")
+	ErrBitOffsetNotIntOrOutOfRange = errors.New("ERR bit offset is not an integer or out of range")
 )
 
 const NUL = "\u0000"
@@ -223,7 +224,7 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		}
 		offset, err := strconv.Atoi(string(s[2]))
 		if err != nil || offset < 0 {
-			return nil, ErrBitNotIntOrOutOfRange
+			return nil, ErrBitOffsetNotIntOrOutOfRange
 		}
 		key := s[1]
 		v, ok := kv.Get(key)
@@ -347,6 +348,28 @@ func ExecuteCommand(kv *store.Store, cmdSeq []([]byte)) (res interface{}, err er
 		for i := 0; i < len(pairs)-1; i += 2 {
 			kv.Set(pairs[i], pairs[i+1])
 		}
+		return 1, nil
+	case "COPY":
+		if sLen < 3 || sLen > 4 {
+			return nil, ErrWrongNumOfArgs
+		}
+		src := s[1]
+		v, ok := kv.Get(src)
+		if !ok {
+			return 0, nil
+		}
+		dest := s[2]
+		_, ok = kv.Get(dest)
+		if ok {
+			if sLen == 4 {
+				if !bytes.Equal(s[3], []byte("REPLACE")) {
+					return nil, ErrInvalidSyntax
+				}
+			} else {
+				return 0, nil
+			}
+		}
+		kv.Set(dest, v)
 		return 1, nil
 	case "RENAME":
 	case "FLUSHDB":

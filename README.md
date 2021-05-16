@@ -63,7 +63,7 @@ make test
 **A. List of Allowed Commands**
 
 - Connection: `PING`, `ECHO`
-- Keys: `DEL`, `EXISTS`
+- Keys: `DEL`, `EXISTS`, `COPY [REPLACE]`
 - Strings: `GET`, `SET [NX|XX] [GET]`, `GETDEL`, `INCR`, `DECR`, `INCRBY`, `DECRBY`, `APPEND`, `GETRANGE`, `STRLEN`, `SETRANGE`, `MGET`, `MSET`, `MSETNX`, `GETBIT`
 - Server: `SAVE`
 
