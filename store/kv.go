@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 )
 
 // should be part of the Store struct
@@ -13,6 +14,7 @@ var defaultPath = "dump.trdb"
 
 type Store struct {
 	underlying map[string]([]byte)
+	mu         sync.RWMutex
 }
 
 func New() *Store {
@@ -58,14 +60,20 @@ func (kv *Store) Save() {
 }
 
 func (kv *Store) Set(key []byte, value []byte) {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
 	kv.underlying[string(key)] = value
 }
 
 func (kv *Store) Get(key []byte) (value []byte, ok bool) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
 	v, ok := kv.underlying[string(key)]
 	return v, ok
 }
 
 func (kv *Store) Del(key []byte) {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
 	delete(kv.underlying, string(key))
 }
