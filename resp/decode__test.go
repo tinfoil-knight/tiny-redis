@@ -55,6 +55,7 @@ func Test__Array(t *testing.T) {
 	sliceWithMixedTypes := []interface{}{1, 2, 3, 4, []byte("foobar")}
 	nestedSlice := []interface{}{sliceOfIntegers, sliceOfStrings}
 	sliceWithNull := []interface{}{[]byte("foo"), nil, []byte("bar")}
+	sliceWithEmptyString := []interface{}{[]byte("foo"), []byte(""), []byte("bar")}
 
 	tests := []struct {
 		input    string
@@ -66,6 +67,7 @@ func Test__Array(t *testing.T) {
 		{"*5\r\n:1\r\n:2\r\n:3\r\n:4\r\n$6\r\nfoobar\r\n", sliceWithMixedTypes},
 		{"*2\r\n*3\r\n:1\r\n:2\r\n:3\r\n*2\r\n+foo\r\n+bar\r\n", nestedSlice},
 		{"*3\r\n$3\r\nfoo\r\n_\r\n$3\r\nbar\r\n", sliceWithNull},
+		{"*3\r\n$3\r\nfoo\r\n$0\r\n\r\n$3\r\nbar\r\n", sliceWithEmptyString},
 	}
 	for _, tt := range tests {
 		got, _ := Decode([]byte(tt.input))
