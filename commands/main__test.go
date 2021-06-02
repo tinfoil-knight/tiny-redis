@@ -41,6 +41,53 @@ func Test__PING_ECHO(t *testing.T) {
 	}
 }
 
+func Test__SET(t *testing.T) {
+	kv := store.New()
+	s := "Hello World"
+	s1 := "foobar"
+	for i := 1; i < 5; i++ {
+		kv.Set(b(fmt.Sprintf("preset%d", i)), b(s))
+	}
+	type setTest struct {
+		name     string
+		key      string
+		value    string
+		options  []string
+		expected string
+	}
+	withValueChk := []setTest{
+		{"No Options Simple Key", "notset1", s, []string{}, s},
+		{"No Options Empty Key", "", s, []string{}, s},
+		{"New Key with NX", "notset2", s, []string{"NX"}, s},
+		{"Preset Key with NX", "preset1", s1, []string{"NX"}, s},
+		{"New Key with XX", "notset3", s, []string{"XX"}, ""},
+		{"Preset Key with XX", "preset2", s1, []string{"XX"}, s1},
+	}
+	withReturnChk := []setTest{
+		{"New Key with GET", "notset4", s1, []string{"GET"}, ""},
+		{"Preset Key with GET", "preset3", s1, []string{"GET"}, s},
+		{"New Key with XX,GET", "notset5", s, []string{"XX", "GET"}, ""},
+		{"Preset Key with XX,GET", "preset4", s1, []string{"XX", "GET"}, s},
+		// skip: all other cases with 2 keys which lead to syntax error
+	}
+	for _, tt := range withValueChk {
+		in := append([]string{"SET", tt.key, tt.value}, tt.options...)
+		ExecuteCommand(kv, bA(in))
+		v, _ := kv.Get(b(tt.key))
+		got := fmt.Sprintf("%s", v)
+		if got != tt.expected {
+			t.Errorf("ExecuteCommand(%q)(%q): got %q want %q", tt.name, in, got, tt.expected)
+		}
+	}
+	for _, tt := range withReturnChk {
+		in := append([]string{"SET", tt.key, tt.value}, tt.options...)
+		got, _ := ExecuteCommand(kv, bA(in))
+		if fmt.Sprintf("%s", got) != tt.expected {
+			t.Errorf("ExecuteCommand(%q)(%s): got %q want %q", tt.name, in, got, tt.expected)
+		}
+	}
+}
+
 func Test__GETRANGE(t *testing.T) {
 	kv := store.New()
 	s := "Hello, world"
