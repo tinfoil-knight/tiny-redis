@@ -13,13 +13,12 @@ import (
 var defaultPath = "dump.trdb"
 
 type Store struct {
-	underlying map[string]([]byte)
-	mu         sync.RWMutex
+	underlying sync.Map
 }
 
 func New() *Store {
 	kv := Store{
-		underlying: make(map[string]([]byte)),
+		underlying: *new(sync.Map),
 	}
 	ok := kv.Load(defaultPath)
 	if ok {
@@ -38,9 +37,11 @@ func (kv *Store) Load(path string) bool {
 		panic(err)
 	}
 	defer f.Close()
-	if err = gob.NewDecoder(f).Decode(&kv.underlying); err != nil {
+	var tmp map[string][]byte
+	if err = gob.NewDecoder(f).Decode(&tmp); err != nil {
 		panic(err)
 	}
+	kv.underlying = *toSyncMap(&tmp)
 	return true
 }
 
@@ -51,7 +52,8 @@ func (kv *Store) Save() {
 	}
 	defer f.Close()
 	b := new(bytes.Buffer)
-	if err = gob.NewEncoder(b).Encode(kv.underlying); err != nil {
+	tmp := fromSyncMap(&kv.underlying)
+	if err = gob.NewEncoder(b).Encode(tmp); err != nil {
 		panic(err)
 	}
 	if _, err = io.Copy(f, b); err != nil {
@@ -59,21 +61,34 @@ func (kv *Store) Save() {
 	}
 }
 
+func fromSyncMap(sm *sync.Map) *map[string][]byte {
+	tmp := make(map[string][]byte)
+	sm.Range(func(k, v interface{}) bool {
+		tmp[k.(string)] = v.([]byte)
+		return true
+	})
+	return &tmp
+}
+
+func toSyncMap(m *map[string][]byte) *sync.Map {
+	sm := sync.Map{}
+	for k, v := range *m {
+		sm.Store(k, v)
+	}
+	return &sm
+}
+
 func (kv *Store) Set(key []byte, value []byte) {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	kv.underlying[string(key)] = value
+	kv.underlying.Store(string(key), value)
 }
 
 func (kv *Store) Get(key []byte) (value []byte, ok bool) {
-	kv.mu.RLock()
-	defer kv.mu.RUnlock()
-	v, ok := kv.underlying[string(key)]
-	return v, ok
+	if v, ok := kv.underlying.Load(string(key)); ok {
+		return v.([]byte), true
+	}
+	return nil, false
 }
 
 func (kv *Store) Del(key []byte) {
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	delete(kv.underlying, string(key))
+	kv.underlying.Delete(string(key))
 }
